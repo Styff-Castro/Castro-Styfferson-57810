@@ -1,0 +1,51 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Carrito</h1>
+<p class="lead fw-normal text-white-50 mb-0">Botín épico conseguido</p>                                 
+{% endblock titulo %}
+
+
+{% block contenido %}
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center">
+            {% if cart %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>
+                                    {% if item.product.category == 'consolas' %}
+                                        <a href="{% url 'consolas' %}">Consolas</a>
+                                    {% elif item.product.category == 'accesorios' %}
+                                        <a href="{% url 'accesorios' %}">Accesorios</a>
+                                    {% elif item.product.category == 'juegos' %}
+                                        <a href="{% url 'juegos' %}">Juegos</a>
+                                    {% endif %}
+                                </td>
+                                <td>${{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.total_price }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <h4>Total: ${{ cart.get_total_price }}</h4>
+                </div>
+            {% else %}
+                <p>Tu carrito está vacío</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock contenido %}

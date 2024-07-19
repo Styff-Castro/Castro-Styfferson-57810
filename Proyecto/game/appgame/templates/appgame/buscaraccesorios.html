@@ -1,0 +1,19 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Buscar Accesorios</h1>
+<p class="lead fw-normal text-white-50 mb-0">Jugando Ando</p>                                 
+{% endblock titulo %}
+
+
+{% block contenido %}   
+
+<form action="{% url 'encontrarAccesorios' %}" method="get">
+    {% csrf_token %}
+    <table>
+        <p>Ingrese patron de busqueda: <input type="text" name="buscar" id="buscar"></p>
+    </table>
+    <input type="submit" value="Buscar">
+</form>
+
+{% endblock contenido %}

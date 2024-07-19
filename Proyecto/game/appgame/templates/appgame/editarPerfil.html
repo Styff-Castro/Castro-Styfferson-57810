@@ -1,0 +1,19 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Edicion de Perfil</h1>
+<p class="lead fw-normal text-white-50 mb-0">Juego para ganar, pero me divierto más cuando pierdo con estilo</p>                                 
+{% endblock titulo %}
+
+
+{% block contenido %}   
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Enviar">
+</form>
+
+{% endblock contenido %}

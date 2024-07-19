@@ -1,0 +1,18 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Avatar</h1>
+<p class="lead fw-normal text-white-50 mb-0">El maestro del juego</p>                                 
+{% endblock titulo %}
+
+{% block contenido %}   
+
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Actualizar Avatar">
+</form>
+
+{% endblock contenido %}

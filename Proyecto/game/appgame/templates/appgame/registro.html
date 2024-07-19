@@ -1,0 +1,18 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Registrate Gratis</h1>
+<p class="lead fw-normal text-white-50 mb-0">Mi viaje como jugador comienza aquí, una misión a la vez</p>                                 
+{% endblock titulo %}
+
+{% block contenido %}   
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Registrarse">
+</form>
+
+{% endblock contenido %}

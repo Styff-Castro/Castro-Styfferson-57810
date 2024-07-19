@@ -1,0 +1,18 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Cambiar Contraseña</h1>
+<p class="lead fw-normal text-white-50 mb-0">Mi clave es tan secreta que está escrita en código binario y guardada en una bóveda nuclear</p>                                 
+{% endblock titulo %}
+
+{% block contenido %}   
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Cambiar clave">
+</form>
+
+{% endblock contenido %}
