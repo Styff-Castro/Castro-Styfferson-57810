@@ -16,30 +16,15 @@ Para navegar en las secciones por la pagina el usuario debe tener un registro e 
 Los usuarios del Staff podran agregar, editar, modificar y eliminar productos.
 
 Los usuarios del Staff con sus respectivos permisos son:
-  * usuario: Styff
-    correo: scastroh7@gmail.com
-    password: castro19335659
-    todos los permisos
+  * usuario: Styff  /  correo: scastroh7@gmail.com  /  password: castro19335659  -  todos los permisos
 
-  * usuario: Norman
-    correo: norman@coder.com
-    password:norman1coder
-    todos los permisos
+  * usuario: Norman  /  correo: norman@coder.com  /  password:norman1coder  -  todos los permisos
 
-  * usuario: Demian
-    correo:demian@coder.com
-    password: demian2coder
-    todos los permisos
+  * usuario: Demian  /  correo:demian@coder.com   / password: demian2coder  -  todos los permisos
 
-  * usuario: Luan
-    correo: luan@coder.com
-    password: luan3coder
-    ver y editar
+  * usuario: Luan  /  correo: luan@coder.com  /  password: luan3coder  -  ver y editar
 
-  * usuario: Lucas
-    correo:lucas@coder.com
-    password:lucas4coder
-    solo ver
+  * usuario: Lucas  /  correo:lucas@coder.com  /  password:lucas4coder  -  solo ver
     
 # Tecnologia Utilizada
 **Front-End**
