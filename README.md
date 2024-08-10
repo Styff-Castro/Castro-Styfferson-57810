@@ -5,7 +5,7 @@ Alumno: **Styfferson Castro.**
 # Nombre del Proyecto
 **Zona Arcade** - Tu Portal Gamer.
 
-# Versio
+# Versión 
 1.0
 
 # Descripción del Proyecto
@@ -26,7 +26,7 @@ Los usuarios del Staff con sus respectivos permisos son:
 
   * usuario: Lucas  /  correo:lucas@coder.com  /  password:lucas4coder  -  solo ver
     
-# Tecnologia Utilizada
+# Tecnologías Utilizadas 
 **Front-End**
   * HTML 5
   * CSS 3
