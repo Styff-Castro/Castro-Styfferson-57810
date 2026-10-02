@@ -12,7 +12,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 
 from django.views.decorators.http import require_POST
-from .models import Cart
+from django.db.models import Q
+from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
+from .cart import Cart, MODELOS
 
 # Create your views here.
 def home(request):
@@ -101,8 +104,8 @@ def buscarConsolas(request):
 
 @login_required
 def encontrarConsolas(request):
-    if request.GET["buscar"]:
-        patron = request.GET["buscar"]
+    patron = request.GET.get("buscar", "").strip()
+    if patron:
         consolas = Consolas.objects.filter(nombre__icontains=patron)
         contexto = {'consolas': consolas}    
     else:
@@ -117,8 +120,8 @@ def buscarAccesorios(request):
 
 @login_required
 def encontrarAccesorios(request):
-    if request.GET["buscar"]:
-        patron = request.GET["buscar"]
+    patron = request.GET.get("buscar", "").strip()
+    if patron:
         accesorios = Accsesorios.objects.filter(nombre__icontains=patron)
         contexto = {'accesorios': accesorios}    
     else:
@@ -133,42 +136,8 @@ def buscarJuegos(request):
 
 @login_required
 def encontrarJuegos(request):
-    if request.GET["buscar"]:
-        patron = request.GET["buscar"]
-        juegos = Juegos.objects.filter(nombre__icontains=patron)
-        contexto = {'juegos': juegos}    
-    else:
-        contexto = {'juegos': Juegos.objects.all()}
-        
-    return render(request, "appgame/juegos.html", contexto)
-
-##--Encontrar Consolas, Accesorios, Juegos--#
-@login_required
-def encontrarConsolas(request):
-    if request.GET["buscar"]:
-        patron = request.GET["buscar"]
-        consolas = Consolas.objects.filter(nombre__icontains=patron)
-        contexto = {'consolas': consolas}    
-    else:
-        contexto = {'consolas': Consolas.objects.all()}
-        
-    return render(request, "appgame/consolas.html", contexto)
-
-@login_required
-def encontrarAccesorios(request):
-    if request.GET["buscar"]:
-        patron = request.GET["buscar"]
-        accesorios = Accsesorios.objects.filter(nombre__icontains=patron)
-        contexto = {'accesorios': accesorios}    
-    else:
-        contexto = {'accesorios': Accsesorios.objects.all()}
-        
-    return render(request, "appgame/accesorios.html", contexto)
-
-@login_required
-def encontrarJuegos(request):
-    if request.GET["buscar"]:
-        patron = request.GET["buscar"]
+    patron = request.GET.get("buscar", "").strip()
+    if patron:
         juegos = Juegos.objects.filter(nombre__icontains=patron)
         contexto = {'juegos': juegos}    
     else:
@@ -186,11 +155,12 @@ def consolaUpdate(request, id_consolas):
             consolas.nombre = miForm.cleaned_data.get("nombre")
             consolas.empresa = miForm.cleaned_data.get("empresa")
             consolas.modelo = miForm.cleaned_data.get("modelo")
+            consolas.precio = miForm.cleaned_data.get("precio")
             consolas.save()
             contexto = {"consolas": Consolas.objects.all() }
             return render(request, "appgame/consolas.html", contexto)       
     else:
-        miForm = ConsolaForm(initial={"nombre": consolas.nombre, "empresa": consolas.empresa, "modelo": consolas.modelo}) 
+        miForm = ConsolaForm(initial={"nombre": consolas.nombre, "empresa": consolas.empresa, "modelo": consolas.modelo, "precio": consolas.precio}) 
     
     return render(request, "appgame/consolaForm.html", {"form": miForm})
 
@@ -203,11 +173,12 @@ def juegoUpdate(request, id_juegos):
             juegos.nombre = miForm.cleaned_data.get("nombre")
             juegos.empresa = miForm.cleaned_data.get("empresa")
             juegos.categoria = miForm.cleaned_data.get("categoria")
+            juegos.precio = miForm.cleaned_data.get("precio")
             juegos.save()
             contexto = {"juegos": Juegos.objects.all() }
             return render(request, "appgame/juegos.html", contexto)       
     else:
-        miForm = JuegoForm(initial={"nombre": juegos.nombre, "empresa": juegos.empresa, "categoria": juegos.categoria}) 
+        miForm = JuegoForm(initial={"nombre": juegos.nombre, "empresa": juegos.empresa, "categoria": juegos.categoria, "precio": juegos.precio}) 
     
     return render(request, "appgame/juegoForm.html", {"form": miForm})
 
@@ -220,11 +191,12 @@ def accesorioUpdate(request, id_accesorios):
             accesorios.nombre = miForm.cleaned_data.get("nombre")
             accesorios.empresa = miForm.cleaned_data.get("empresa")
             accesorios.modelo = miForm.cleaned_data.get("modelo")
+            accesorios.precio = miForm.cleaned_data.get("precio")
             accesorios.save()
             contexto = {"accesorios": Accsesorios.objects.all() }
             return render(request, "appgame/accesorios.html", contexto)       
     else:
-        miForm = JuegoForm(initial={"nombre": accesorios.nombre, "empresa": accesorios.empresa, "modelo": accesorios.modelo}) 
+        miForm = AccesorioForm(initial={"nombre": accesorios.nombre, "empresa": accesorios.empresa, "modelo": accesorios.modelo, "precio": accesorios.precio}) 
     
     return render(request, "appgame/accesorioForm.html", {"form": miForm})
 
@@ -343,38 +315,59 @@ def agregarAvatar(request):
     return render(request, "appgame/agregarAvatar.html", {"form": miForm})  
 
 #-- Carrito --#
+def _volver(request, default="carrito"):
+    """Regresa a la página desde donde se hizo el POST (si es del mismo sitio)."""
+    siguiente = request.POST.get("next") or request.META.get("HTTP_REFERER")
+    if siguiente and url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
+        return redirect(siguiente)
+    return redirect(default)
+
 
 @require_POST
 def add_to_cart(request):
-    product_id = request.POST.get('product_id')
-    product = Consolas.objects.get(id=product_id)
-    cart = Cart(request)
-    cart.add(product)
-    return redirect('carrito')
+    tipo = request.POST.get("tipo")
+    modelo = MODELOS.get(tipo)
+    if modelo is None:
+        messages.error(request, "Tipo de producto inválido.")
+        return _volver(request)
+    product = get_object_or_404(modelo, id=request.POST.get("product_id") or 0)
+    Cart(request).add(tipo, product)
+    messages.success(request, f"«{product.nombre}» agregado al carrito.")
+    return _volver(request)
+
+
+@require_POST
+def decrease_from_cart(request):
+    Cart(request).decrease(request.POST.get("tipo"), request.POST.get("product_id"))
+    return redirect("carrito")
+
+
+@require_POST
+def remove_from_cart(request):
+    Cart(request).remove(request.POST.get("tipo"), request.POST.get("product_id"))
+    return redirect("carrito")
+
+
+@require_POST
+def clear_cart(request):
+    Cart(request).clear()
+    return redirect("carrito")
+
 
 def carrito(request):
-    cart = Cart(request)
-    return render(request, 'appgame/carrito.html', {'cart': cart})
-
-@require_POST
-def add_to_cart(request):
-    product_id = request.POST.get('product_id')
-    if not product_id:
-        # Maneja el caso donde no se proporciona un ID de producto
-        return redirect('home')  # Redirigir a una página relevante si no hay ID de producto
-
-    # Convertir el product_id a un número entero
-    try:
-        product_id = int(product_id)
-    except ValueError:
-        return redirect('home')  # Redirigir si el ID no es válido
-
-    # Obtener el producto y añadirlo al carrito
-    product = get_object_or_404(Consolas, id=product_id)
-    cart = Cart(request)
-    cart.add(product)
-
-    return redirect('carrito')
+    return render(request, "appgame/carrito.html", {"cart": Cart(request)})
 
 
-
+#-- Búsqueda global (barra del navbar) --#
+def buscar(request):
+    q = request.GET.get("q", "").strip()
+    resultados = {"consolas": [], "accesorios": [], "juegos": []}
+    if q:
+        filtro = Q(nombre__icontains=q) | Q(empresa__icontains=q)
+        resultados = {
+            "consolas": Consolas.objects.filter(filtro | Q(modelo__icontains=q)),
+            "accesorios": Accsesorios.objects.filter(filtro | Q(modelo__icontains=q)),
+            "juegos": Juegos.objects.filter(filtro | Q(categoria__icontains=q)),
+        }
+    total = sum(len(r) for r in resultados.values())
+    return render(request, "appgame/buscar.html", {"q": q, "total": total, **resultados})

@@ -55,6 +55,10 @@
                             </ul>         
                         </li>                         
                     </ul>
+                    <form class="d-flex me-2 my-2 my-lg-0" method="get" action="{% url 'buscar' %}" role="search">
+                        <input class="form-control me-2" type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar consolas, juegos, accesorios..." aria-label="Buscar">
+                        <button class="btn btn-outline-success" type="submit"><i class="bi-search"></i></button>
+                    </form>
                     <form class="d-flex" method="get" action="{% url 'carrito' %}">
                         <button class="btn btn-outline-dark" type="submit">
                             <i class="bi-cart-fill me-1"></i>
@@ -85,6 +89,17 @@
             </div>
         </header>
 
+        {% if messages %}
+        <div class="container px-4 px-lg-5 mt-3">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% block contenido %}
             
                 
@@ -110,8 +125,9 @@
                             <div class="text-center">
                                 <form method="post" action="{% url 'add_to_cart' %}">
                                     {% csrf_token %}
-                                    <input type="hidden" name="product_id" value="{{ product.id }}">
-                                    <button class="btn btn-outline-dark mt-auto" type="submit">Añadir al Carrito</button>
+                                    <input type="hidden" name="tipo" value="consola">
+                                    <input type="hidden" name="product_id" value="1">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
                                 </form>
                             </div>
                             <!--<div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
@@ -144,8 +160,13 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="#">Añadir al Carrito</a></div>
+                            <div class="text-center">
+                                <form method="post" action="{% url 'add_to_cart' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="tipo" value="juego">
+                                    <input type="hidden" name="product_id" value="2">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -166,8 +187,13 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="#">Añadir al Carrito</a></div>
+                            <div class="text-center">
+                                <form method="post" action="{% url 'add_to_cart' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="tipo" value="juego">
+                                    <input type="hidden" name="product_id" value="3">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -193,8 +219,13 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="#">Añadir al Carrito</a></div>
+                            <div class="text-center">
+                                <form method="post" action="{% url 'add_to_cart' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="tipo" value="juego">
+                                    <input type="hidden" name="product_id" value="5">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -215,8 +246,13 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="#">Añadir al Carrito</a></div>
+                            <div class="text-center">
+                                <form method="post" action="{% url 'add_to_cart' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="tipo" value="accesorio">
+                                    <input type="hidden" name="product_id" value="4">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -264,8 +300,13 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="#">Añadir al Carrito</a></div>
+                            <div class="text-center">
+                                <form method="post" action="{% url 'add_to_cart' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="tipo" value="accesorio">
+                                    <input type="hidden" name="product_id" value="1">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -291,14 +332,20 @@
                                 </div>
                             </div>
                             <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="#">Añadir al Carrito</a></div>
+                            <div class="text-center">
+                                <form method="post" action="{% url 'add_to_cart' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="tipo" value="juego">
+                                    <input type="hidden" name="product_id" value="6">
+                                    <button class="btn btn-outline-dark mt-auto" type="submit"><i class="bi-cart-fill me-1"></i>Añadir al Carrito</button>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+        {% endblock contenido %}
         <!-- Footer-->
         <footer class="py-5 bg-dark">
             <div class="container"><p class="m-0 text-center text-white">Copyright - Styfferson Castro &copy; Website 2/07/2024</p></div>
@@ -308,5 +355,4 @@
         <!-- Core theme JS-->
         <script src="{% static 'js/scripts.js' %}"></script>
     </body>
-        {% endblock contenido %}
 </html>

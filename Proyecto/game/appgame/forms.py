@@ -6,19 +6,19 @@ class ConsolaForm(forms.Form):
     nombre = forms.CharField(max_length=50, required=True)
     modelo = forms.CharField(max_length=50)
     empresa = forms.CharField(max_length=50)
-    precio = forms.IntegerField()
+    precio = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0)
 
 class AccesorioForm(forms.Form):
     nombre = forms.CharField(max_length=50, required=True)
     modelo = forms.CharField(max_length=50)
     empresa = forms.CharField(max_length=50)
-    precio = forms.IntegerField()
+    precio = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0)
 
 class JuegoForm(forms.Form):
     nombre = forms.CharField(max_length=50, required=True)
     categoria = forms.CharField(max_length=50)
     empresa = forms.CharField(max_length=50)
-    precio = forms.IntegerField()
+    precio = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     
 class RegistroForm(UserCreationForm):
     email = forms.EmailField(required=True)

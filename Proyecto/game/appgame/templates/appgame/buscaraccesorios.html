@@ -9,11 +9,10 @@
 {% block contenido %}   
 
 <form action="{% url 'encontrarAccesorios' %}" method="get">
-    {% csrf_token %}
     <table>
         <p>Ingrese patron de busqueda: <input type="text" name="buscar" id="buscar"></p>
     </table>
     <input type="submit" value="Buscar">
 </form>
 
-{% endblock contenido %}
+{% endblock contenido %}
