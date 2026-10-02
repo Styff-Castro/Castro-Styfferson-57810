@@ -7,7 +7,7 @@ class Consolas(models.Model):
     nombre = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     empresa = models.CharField(max_length=50)
-    precio = models.IntegerField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
     
     class Meta:
         verbose_name = "Consala"
@@ -21,7 +21,7 @@ class Accsesorios(models.Model):
     nombre = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     empresa = models.CharField(max_length=50)
-    precio = models.IntegerField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         verbose_name = "Accesorio"
@@ -38,7 +38,7 @@ class Juegos(models.Model):
     nombre = models.CharField(max_length=50)
     categoria = models.CharField(max_length=50)
     empresa = models.CharField(max_length=50)
-    precio = models.IntegerField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         verbose_name = "Juego"

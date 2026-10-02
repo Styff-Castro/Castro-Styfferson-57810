@@ -155,11 +155,12 @@ def consolaUpdate(request, id_consolas):
             consolas.nombre = miForm.cleaned_data.get("nombre")
             consolas.empresa = miForm.cleaned_data.get("empresa")
             consolas.modelo = miForm.cleaned_data.get("modelo")
+            consolas.precio = miForm.cleaned_data.get("precio")
             consolas.save()
             contexto = {"consolas": Consolas.objects.all() }
             return render(request, "appgame/consolas.html", contexto)       
     else:
-        miForm = ConsolaForm(initial={"nombre": consolas.nombre, "empresa": consolas.empresa, "modelo": consolas.modelo}) 
+        miForm = ConsolaForm(initial={"nombre": consolas.nombre, "empresa": consolas.empresa, "modelo": consolas.modelo, "precio": consolas.precio}) 
     
     return render(request, "appgame/consolaForm.html", {"form": miForm})
 
@@ -172,11 +173,12 @@ def juegoUpdate(request, id_juegos):
             juegos.nombre = miForm.cleaned_data.get("nombre")
             juegos.empresa = miForm.cleaned_data.get("empresa")
             juegos.categoria = miForm.cleaned_data.get("categoria")
+            juegos.precio = miForm.cleaned_data.get("precio")
             juegos.save()
             contexto = {"juegos": Juegos.objects.all() }
             return render(request, "appgame/juegos.html", contexto)       
     else:
-        miForm = JuegoForm(initial={"nombre": juegos.nombre, "empresa": juegos.empresa, "categoria": juegos.categoria}) 
+        miForm = JuegoForm(initial={"nombre": juegos.nombre, "empresa": juegos.empresa, "categoria": juegos.categoria, "precio": juegos.precio}) 
     
     return render(request, "appgame/juegoForm.html", {"form": miForm})
 
@@ -189,11 +191,12 @@ def accesorioUpdate(request, id_accesorios):
             accesorios.nombre = miForm.cleaned_data.get("nombre")
             accesorios.empresa = miForm.cleaned_data.get("empresa")
             accesorios.modelo = miForm.cleaned_data.get("modelo")
+            accesorios.precio = miForm.cleaned_data.get("precio")
             accesorios.save()
             contexto = {"accesorios": Accsesorios.objects.all() }
             return render(request, "appgame/accesorios.html", contexto)       
     else:
-        miForm = JuegoForm(initial={"nombre": accesorios.nombre, "empresa": accesorios.empresa, "modelo": accesorios.modelo}) 
+        miForm = AccesorioForm(initial={"nombre": accesorios.nombre, "empresa": accesorios.empresa, "modelo": accesorios.modelo, "precio": accesorios.precio}) 
     
     return render(request, "appgame/accesorioForm.html", {"form": miForm})
 
