@@ -1,0 +1,23 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Buscar</h1>
+<p class="lead fw-normal text-white-50 mb-0">{% if q %}{{ total }} resultado{{ total|pluralize }} para «{{ q }}»{% else %}Escribe algo en la barra de búsqueda{% endif %}</p>
+{% endblock titulo %}
+
+{% block contenido %}
+<div class="container px-4 px-lg-5 my-5">
+    <form class="d-flex mb-4" method="get" action="{% url 'buscar' %}" role="search">
+        <input class="form-control me-2" type="search" name="q" value="{{ q }}" placeholder="Nombre, empresa, modelo o categoría" autofocus>
+        <button class="btn btn-dark" type="submit">Buscar</button>
+    </form>
+
+    {% if q and not total %}
+        <p class="text-center">No se encontraron productos.</p>
+    {% endif %}
+
+    {% include 'appgame/_resultados.html' with titulo='Consolas' tipo='consola' items=consolas detalle='modelo' %}
+    {% include 'appgame/_resultados.html' with titulo='Juegos' tipo='juego' items=juegos detalle='categoria' %}
+    {% include 'appgame/_resultados.html' with titulo='Accesorios' tipo='accesorio' items=accesorios detalle='modelo' %}
+</div>
+{% endblock contenido %}

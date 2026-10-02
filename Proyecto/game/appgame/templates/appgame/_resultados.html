@@ -1,0 +1,24 @@
+{% if items %}
+<h3 class="mt-4">{{ titulo }}</h3>
+<table class="table table-striped align-middle">
+    <thead><tr><th>Nombre</th><th>Empresa</th><th>Detalle</th><th class="text-end">Precio</th><th></th></tr></thead>
+    <tbody>
+    {% for p in items %}
+        <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.empresa }}</td>
+            <td>{% if detalle == 'categoria' %}{{ p.categoria }}{% else %}{{ p.modelo }}{% endif %}</td>
+            <td class="text-end">{{ p.precio }}</td>
+            <td class="text-end">
+                <form method="post" action="{% url 'add_to_cart' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="tipo" value="{{ tipo }}">
+                    <input type="hidden" name="product_id" value="{{ p.id }}">
+                    <button class="btn btn-sm btn-outline-dark" type="submit"><i class="bi-cart-fill me-1"></i>Añadir</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
