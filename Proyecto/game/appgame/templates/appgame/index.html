@@ -28,6 +28,7 @@
                 <div class="text-center">
                     <a href="{% url 'agregar_avatar' %}"><img src="{{ request.session.avatar }}" height="40px" weight="40px" alt="mi foto"></a>
                 </div>
+                <a class="btn btn-outline-dark ms-2" href="{% url 'historial' %}"><i class="bi-receipt me-1"></i>Mis compras</a>
                 <a class="btn btn-success" href="{% url 'perfil' %}">Perfil</a>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
@@ -92,10 +93,38 @@
         {% if messages %}
         <div class="container px-4 px-lg-5 mt-3">
             {% for message in messages %}
+            {% if 'compra' in message.tags %}
+            <!-- Ventana de compra exitosa -->
+            <div class="modal fade" id="modalCompra" tabindex="-1" aria-labelledby="modalCompraTitulo" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content text-center">
+                        <div class="modal-body p-4">
+                            <i class="bi-check-circle-fill text-success" style="font-size: 4rem"></i>
+                            <h4 class="mt-3" id="modalCompraTitulo">¡Compra realizada con éxito!</h4>
+                            <p class="mb-0">{{ message }}</p>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <a class="btn btn-outline-dark" href="{% url 'historial' %}">Ver mis compras</a>
+                            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Seguir comprando</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+            window.addEventListener('load', () => {
+                const m = document.getElementById('modalCompra');
+                if (window.bootstrap) { new bootstrap.Modal(m).show(); return; }
+                // Respaldo si no cargó Bootstrap JS: mostrar la ventana igual
+                m.classList.add('show'); m.style.display = 'block'; m.style.background = 'rgba(0,0,0,.5)';
+                m.querySelectorAll('[data-bs-dismiss="modal"]').forEach(b => b.onclick = () => { m.style.display = 'none'; });
+            });
+            </script>
+            {% else %}
             <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
         {% endif %}

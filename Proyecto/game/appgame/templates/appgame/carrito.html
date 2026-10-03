@@ -7,7 +7,7 @@
 
 {% block contenido %}
 <div class="container px-4 px-lg-5 my-5">
-    {% if cart %}
+    {% if resumen.items %}
         <div class="table-responsive">
         <table class="table align-middle">
             <thead>
@@ -21,17 +21,23 @@
                 </tr>
             </thead>
             <tbody>
-            {% for item in cart %}
+            {% for item in resumen.items %}
                 <tr>
                     <td>{{ item.nombre }}</td>
                     <td><a href="{% url item.url_categoria %}">{{ item.tipo|capfirst }}</a></td>
-                    <td class="text-end">${{ item.precio|floatformat:2 }}</td>
-                    <td class="text-center">
+                    <td class="text-end">
+                        {% if item.descuento %}
+                            <span class="text-muted text-decoration-line-through small">${{ item.precio_base|floatformat:2 }}</span>
+                            <span class="badge bg-danger ms-1">-{{ item.descuento }}%</span><br>
+                        {% endif %}
+                        ${{ item.precio|floatformat:2 }}
+                    </td>
+                    <td class="text-center text-nowrap">
                         <form method="post" action="{% url 'decrease_from_cart' %}" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="tipo" value="{{ item.tipo }}">
                             <input type="hidden" name="product_id" value="{{ item.id }}">
-                            <button class="btn btn-sm btn-outline-secondary" type="submit">−</button>
+                            <button class="btn btn-sm btn-outline-secondary" type="submit" aria-label="Restar">−</button>
                         </form>
                         <span class="mx-2">{{ item.cantidad }}</span>
                         <form method="post" action="{% url 'add_to_cart' %}" class="d-inline">
@@ -39,7 +45,7 @@
                             <input type="hidden" name="tipo" value="{{ item.tipo }}">
                             <input type="hidden" name="product_id" value="{{ item.id }}">
                             <input type="hidden" name="next" value="{% url 'carrito' %}">
-                            <button class="btn btn-sm btn-outline-secondary" type="submit">+</button>
+                            <button class="btn btn-sm btn-outline-secondary" type="submit" aria-label="Sumar">+</button>
                         </form>
                     </td>
                     <td class="text-end">${{ item.total|floatformat:2 }}</td>
@@ -48,7 +54,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="tipo" value="{{ item.tipo }}">
                             <input type="hidden" name="product_id" value="{{ item.id }}">
-                            <button class="btn btn-sm btn-danger" type="submit"><i class="fa fa-trash"></i></button>
+                            <button class="btn btn-sm btn-danger" type="submit" aria-label="Quitar"><i class="fa fa-trash"></i></button>
                         </form>
                     </td>
                 </tr>
@@ -56,12 +62,25 @@
             </tbody>
         </table>
         </div>
-        <div class="d-flex justify-content-between align-items-center">
-            <form method="post" action="{% url 'clear_cart' %}">
-                {% csrf_token %}
-                <button class="btn btn-outline-danger" type="submit">Vaciar carrito</button>
-            </form>
-            <h4 class="mb-0">Total: ${{ cart.get_total_price|floatformat:2 }}</h4>
+
+        <div class="row justify-content-end">
+            <div class="col-md-5">
+                {% include 'appgame/_resumen_montos.html' %}
+                <div class="d-flex gap-2 mt-3">
+                    <form method="post" action="{% url 'clear_cart' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger" type="submit">Vaciar carrito</button>
+                    </form>
+                    {% if user.is_authenticated %}
+                        <a class="btn btn-success flex-grow-1" href="{% url 'checkout' %}"><i class="bi-credit-card me-1"></i>Realizar compra</a>
+                    {% else %}
+                        <a class="btn btn-success flex-grow-1" href="{% url 'login' %}?next={% url 'checkout' %}"><i class="bi-person-lock me-1"></i>Inicia sesión para comprar</a>
+                    {% endif %}
+                </div>
+                {% if not user.is_authenticated %}
+                    <p class="small text-muted mt-2">Para comprar necesitas una cuenta. <a href="{% url 'registro' %}">Regístrate aquí</a>.</p>
+                {% endif %}
+            </div>
         </div>
     {% else %}
         <p class="text-center">Tu carrito está vacío.</p>
