@@ -1,0 +1,38 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Mis compras</h1>
+<p class="lead fw-normal text-white-50 mb-0">Historial y seguimiento de tus pedidos</p>
+{% endblock titulo %}
+
+{% block contenido %}
+<div class="container px-4 px-lg-5 my-5">
+    {% if pedidos %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr><th>Pedido</th><th>Fecha</th><th>Productos</th><th class="text-end">Total</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for p in pedidos %}
+                <tr>
+                    <td class="fw-bold">{{ p.numero }}</td>
+                    <td>{{ p.creado|date:"d/m/Y H:i" }}</td>
+                    <td class="small">{% for i in p.items.all %}{{ i.cantidad }} × {{ i.nombre }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
+                    <td class="text-end text-nowrap">
+                        {% if p.descuento %}<span class="text-muted text-decoration-line-through small">${{ p.subtotal|floatformat:2 }}</span><br>{% endif %}
+                        ${{ p.total|floatformat:2 }}
+                    </td>
+                    <td>{% include 'appgame/_estado_badge.html' with estado=p.estado texto=p.get_estado_display %}</td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-dark" href="{% url 'pedido_detalle' p.id %}">Ver seguimiento</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p class="text-center">Todavía no hiciste ninguna compra.</p>
+        <div class="text-center"><a class="btn btn-dark" href="{% url 'home' %}">Ir a la tienda</a></div>
+    {% endif %}
+</div>
+{% endblock contenido %}

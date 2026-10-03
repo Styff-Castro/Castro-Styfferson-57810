@@ -1,0 +1,91 @@
+{% extends 'appgame/index.html' %}
+
+{% block titulo %}
+<h1 class="display-4 fw-bolder">Pedido {{ pedido.numero }}</h1>
+<p class="lead fw-normal text-white-50 mb-0">Realizado el {{ pedido.creado|date:"d/m/Y H:i" }}</p>
+{% endblock titulo %}
+
+{% block contenido %}
+<div class="container px-4 px-lg-5 my-5">
+    <a href="{% url 'historial' %}" class="btn btn-link px-0 mb-3"><i class="bi-arrow-left"></i> Volver a mis compras</a>
+
+    <!-- Seguimiento -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Seguimiento {% include 'appgame/_estado_badge.html' with estado=pedido.estado texto=pedido.get_estado_display %}</h5>
+            {% if pedido.estado == 'cancelado' %}
+                <p class="text-muted mb-0">Este pedido fue cancelado el {{ pedido.actualizado|date:"d/m/Y H:i" }}.</p>
+            {% else %}
+                <div class="d-flex justify-content-between position-relative mt-4 mb-2">
+                    <div class="position-absolute top-50 start-0 end-0 border-top border-2" style="z-index:0"></div>
+                    {% for paso in pasos %}
+                    <div class="text-center bg-body px-2" style="z-index:1">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle {% if forloop.counter0 <= pedido.paso_estado %}bg-success text-white{% else %}bg-light border{% endif %}" style="width:2.2rem;height:2.2rem">
+                            {% if forloop.counter0 <= pedido.paso_estado %}<i class="bi-check-lg"></i>{% else %}{{ forloop.counter }}{% endif %}
+                        </span>
+                        <div class="small mt-1 {% if forloop.counter0 == pedido.paso_estado %}fw-bold{% endif %}">{{ paso }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="small text-muted mb-0">Última actualización: {{ pedido.actualizado|date:"d/m/Y H:i" }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header fw-bold">Productos</div>
+                <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead><tr><th>Producto</th><th class="text-end">Precio</th><th class="text-center">Cant.</th><th class="text-end">Subtotal</th></tr></thead>
+                    <tbody>
+                    {% for i in pedido.items.all %}
+                        <tr>
+                            <td>{{ i.nombre }}</td>
+                            <td class="text-end">
+                                {% if i.descuento %}<span class="text-muted text-decoration-line-through small">${{ i.precio_base|floatformat:2 }}</span> <span class="badge bg-danger">-{{ i.descuento }}%</span><br>{% endif %}
+                                ${{ i.precio_final|floatformat:2 }}
+                            </td>
+                            <td class="text-center">{{ i.cantidad }}</td>
+                            <td class="text-end">${{ i.subtotal|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    {% if pedido.descuento %}
+                    <div class="d-flex justify-content-between"><span>Monto base</span><span class="text-decoration-line-through text-muted">${{ pedido.subtotal|floatformat:2 }}</span></div>
+                    <div class="d-flex justify-content-between text-danger"><span>Descuento ({{ pedido.porcentaje_descuento }}%)</span><span>−${{ pedido.descuento|floatformat:2 }}</span></div>
+                    <hr class="my-2">
+                    {% endif %}
+                    <div class="d-flex justify-content-between fs-5 fw-bold"><span>Total pagado</span><span>${{ pedido.total|floatformat:2 }}</span></div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body small">
+                    <p class="mb-1"><strong>Pago:</strong>
+                        <i class="fa-brands {% if pedido.marca_tarjeta == 'visa' %}fa-cc-visa{% else %}fa-cc-mastercard{% endif %}"></i>
+                        {{ pedido.get_marca_tarjeta_display }} •••• {{ pedido.ultimos4 }}</p>
+                    <p class="mb-1"><strong>Titular:</strong> {{ pedido.titular }}</p>
+                    <p class="mb-1"><strong>Envío a:</strong> {{ pedido.calle }} {{ pedido.casa_apto }}, {{ pedido.ciudad }} ({{ pedido.codigo_postal }}), {{ pedido.pais }}</p>
+                    <p class="mb-1"><strong>Teléfono:</strong> +{{ pedido.cod_area }} {{ pedido.telefono }}</p>
+                    <p class="mb-0"><strong>{{ pedido.get_tipo_documento_display }}:</strong> {{ pedido.numero_documento }}</p>
+                </div>
+            </div>
+            {% if pedido.estado == 'pagado' %}
+            <form method="post" action="{% url 'pedido_cancelar' pedido.id %}" onsubmit="return confirm('¿Seguro que quieres cancelar este pedido?');">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger w-100" type="submit">Cancelar pedido</button>
+                <div class="form-text">Puedes cancelarlo mientras no haya entrado en preparación.</div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock contenido %}
