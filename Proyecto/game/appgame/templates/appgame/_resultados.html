@@ -8,7 +8,7 @@
             <td>{{ p.nombre }}</td>
             <td>{{ p.empresa }}</td>
             <td>{% if detalle == 'categoria' %}{{ p.categoria }}{% else %}{{ p.modelo }}{% endif %}</td>
-            <td class="text-end">${{ p.precio|floatformat:2 }}</td>
+            <td class="text-end">{% if p.descuento %}<span class="text-muted text-decoration-line-through small">${{ p.precio|floatformat:2 }}</span> <span class="badge bg-danger">-{{ p.descuento }}%</span><br>{% endif %}${{ p.precio_final|floatformat:2 }}</td>
             <td class="text-end">
                 <form method="post" action="{% url 'add_to_cart' %}">
                     {% csrf_token %}

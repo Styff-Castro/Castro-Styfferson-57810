@@ -53,6 +53,12 @@ urlpatterns = [
     path('carrito/quitar/', views.remove_from_cart, name='remove_from_cart'),
     path('carrito/vaciar/', views.clear_cart, name='clear_cart'),
 
+    #-- Compras --#
+    path('checkout/', views.checkout, name='checkout'),
+    path('historial/', views.historial, name='historial'),
+    path('historial/<int:pedido_id>/', views.pedido_detalle, name='pedido_detalle'),
+    path('historial/<int:pedido_id>/cancelar/', views.pedido_cancelar, name='pedido_cancelar'),
+
     #-- Búsqueda global --#
     path('buscar/', views.buscar, name='buscar'),
 ]

@@ -11,6 +11,8 @@ MODELOS = {
 
 URL_CATEGORIA = {"consola": "consolas", "accesorio": "accesorios", "juego": "juegos"}
 
+MAX_POR_PRODUCTO = 10
+
 
 def a_decimal(valor):
     """Convierte precios como 540, '540.00$' o '$ 449,50' a Decimal."""
@@ -22,7 +24,11 @@ def a_decimal(valor):
 
 
 class Cart:
-    """Carrito guardado en la sesión. Clave: '<tipo>-<id>' (ej. 'consola-3')."""
+    """Carrito guardado en la sesión. Clave: '<tipo>-<id>' (ej. 'consola-3').
+
+    En la sesión solo se guarda tipo, id y cantidad. Precio y descuento se leen
+    siempre de la base de datos, así el cliente paga el precio vigente.
+    """
 
     SESSION_KEY = "cart"
 
@@ -36,15 +42,8 @@ class Cart:
 
     def add(self, tipo, product, cantidad=1):
         key = self._key(tipo, product.id)
-        if key not in self.cart:
-            self.cart[key] = {
-                "tipo": tipo,
-                "id": product.id,
-                "nombre": str(product),
-                "precio": str(a_decimal(product.precio)),  # JSON-serializable
-                "cantidad": 0,
-            }
-        self.cart[key]["cantidad"] += cantidad
+        item = self.cart.setdefault(key, {"tipo": tipo, "id": product.id, "cantidad": 0})
+        item["cantidad"] = min(item["cantidad"] + cantidad, MAX_POR_PRODUCTO)
         self.save()
 
     def decrease(self, tipo, product_id):
@@ -67,19 +66,48 @@ class Cart:
     def save(self):
         self.session.modified = True
 
-    def __iter__(self):
-        # Copias: nunca se mete un objeto no serializable en la sesión
-        for item in self.cart.values():
-            precio = Decimal(item["precio"])
-            yield {
-                **item,
-                "precio": precio,
-                "total": precio * item["cantidad"],
+    def items(self):
+        """Lista de items con datos actuales de la BD. Quita productos que ya no existen."""
+        resultado, borrar = [], []
+        for key, item in self.cart.items():
+            modelo = MODELOS.get(item.get("tipo"))
+            producto = modelo.objects.filter(id=item.get("id")).first() if modelo else None
+            if producto is None:
+                borrar.append(key)
+                continue
+            cantidad = item["cantidad"]
+            resultado.append({
+                "tipo": item["tipo"],
+                "id": producto.id,
+                "nombre": str(producto),
+                "precio_base": producto.precio,
+                "descuento": producto.descuento,
+                "precio": producto.precio_final,
+                "cantidad": cantidad,
+                "subtotal_base": producto.precio * cantidad,
+                "total": producto.precio_final * cantidad,
                 "url_categoria": URL_CATEGORIA.get(item["tipo"], "home"),
-            }
+            })
+        for key in borrar:
+            del self.cart[key]
+        if borrar:
+            self.save()
+        return resultado
+
+    def __iter__(self):
+        return iter(self.items())
 
     def __len__(self):
         return sum(item["cantidad"] for item in self.cart.values())
 
+    def resumen(self):
+        """Montos del carrito: base, ahorro, total y % de descuento global."""
+        items = self.items()
+        base = sum((i["subtotal_base"] for i in items), Decimal("0"))
+        total = sum((i["total"] for i in items), Decimal("0"))
+        ahorro = base - total
+        pct = round(ahorro * 100 / base) if base else 0
+        return {"items": items, "base": base, "ahorro": ahorro, "total": total, "porcentaje": pct}
+
     def get_total_price(self):
-        return sum((Decimal(i["precio"]) * i["cantidad"] for i in self.cart.values()), Decimal("0"))
+        return self.resumen()["total"]

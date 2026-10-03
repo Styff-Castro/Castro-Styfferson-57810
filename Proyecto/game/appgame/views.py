@@ -15,6 +15,8 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.db import transaction
+from django.contrib.auth.models import User
 from .cart import Cart, MODELOS
 
 # Create your views here.
@@ -50,6 +52,7 @@ def consolaForm(request):
             consola_modelo = miForm.cleaned_data.get("modelo")
             consola_precio = miForm.cleaned_data.get("precio")
             consola = Consolas(nombre=consola_nombre, empresa=consola_empresa, modelo=consola_modelo, precio=consola_precio) 
+            consola.descuento = miForm.cleaned_data.get("descuento") or 0
             consola.save()
             contexto = {"consolas": Consolas.objects.all() }
             return render(request, "appgame/consolas.html", contexto)
@@ -69,6 +72,7 @@ def accesorioForm(request):
             accesorio_modelo = miForm.cleaned_data.get("modelo")
             accesorio_precio = miForm.cleaned_data.get("precio")
             accesorio = Accsesorios(nombre=accesesorio_nombre, empresa=accesorio_empresa, modelo=accesorio_modelo, precio=accesorio_precio) 
+            accesorio.descuento = miForm.cleaned_data.get("descuento") or 0
             accesorio.save()
             contexto = {"accesorios": Accsesorios.objects.all() }
             return render(request, "appgame/accesorios.html", contexto)
@@ -88,6 +92,7 @@ def juegoForm(request):
             juego_categoria = miForm.cleaned_data.get("categoria")
             juego_precio = miForm.cleaned_data.get("precio")
             juego = Juegos(nombre=juego_nombre, empresa=juego_empresa, categoria=juego_categoria, precio=juego_precio) 
+            juego.descuento = miForm.cleaned_data.get("descuento") or 0
             juego.save()
             contexto = {"juegos": Juegos.objects.all() }
             return render(request, "appgame/juegos.html", contexto)
@@ -156,11 +161,12 @@ def consolaUpdate(request, id_consolas):
             consolas.empresa = miForm.cleaned_data.get("empresa")
             consolas.modelo = miForm.cleaned_data.get("modelo")
             consolas.precio = miForm.cleaned_data.get("precio")
+            consolas.descuento = miForm.cleaned_data.get("descuento") or 0
             consolas.save()
             contexto = {"consolas": Consolas.objects.all() }
             return render(request, "appgame/consolas.html", contexto)       
     else:
-        miForm = ConsolaForm(initial={"nombre": consolas.nombre, "empresa": consolas.empresa, "modelo": consolas.modelo, "precio": consolas.precio}) 
+        miForm = ConsolaForm(initial={"nombre": consolas.nombre, "empresa": consolas.empresa, "modelo": consolas.modelo, "precio": consolas.precio, "descuento": consolas.descuento}) 
     
     return render(request, "appgame/consolaForm.html", {"form": miForm})
 
@@ -174,11 +180,12 @@ def juegoUpdate(request, id_juegos):
             juegos.empresa = miForm.cleaned_data.get("empresa")
             juegos.categoria = miForm.cleaned_data.get("categoria")
             juegos.precio = miForm.cleaned_data.get("precio")
+            juegos.descuento = miForm.cleaned_data.get("descuento") or 0
             juegos.save()
             contexto = {"juegos": Juegos.objects.all() }
             return render(request, "appgame/juegos.html", contexto)       
     else:
-        miForm = JuegoForm(initial={"nombre": juegos.nombre, "empresa": juegos.empresa, "categoria": juegos.categoria, "precio": juegos.precio}) 
+        miForm = JuegoForm(initial={"nombre": juegos.nombre, "empresa": juegos.empresa, "categoria": juegos.categoria, "precio": juegos.precio, "descuento": juegos.descuento}) 
     
     return render(request, "appgame/juegoForm.html", {"form": miForm})
 
@@ -192,11 +199,12 @@ def accesorioUpdate(request, id_accesorios):
             accesorios.empresa = miForm.cleaned_data.get("empresa")
             accesorios.modelo = miForm.cleaned_data.get("modelo")
             accesorios.precio = miForm.cleaned_data.get("precio")
+            accesorios.descuento = miForm.cleaned_data.get("descuento") or 0
             accesorios.save()
             contexto = {"accesorios": Accsesorios.objects.all() }
             return render(request, "appgame/accesorios.html", contexto)       
     else:
-        miForm = AccesorioForm(initial={"nombre": accesorios.nombre, "empresa": accesorios.empresa, "modelo": accesorios.modelo, "precio": accesorios.precio}) 
+        miForm = AccesorioForm(initial={"nombre": accesorios.nombre, "empresa": accesorios.empresa, "modelo": accesorios.modelo, "precio": accesorios.precio, "descuento": accesorios.descuento}) 
     
     return render(request, "appgame/accesorioForm.html", {"form": miForm})
 
@@ -240,14 +248,17 @@ def loginRequest(request):
             finally:
                 request.session["avatar"] = avatar
             #______________________________________________________________
-            return render(request, "appgame/index.html")
+            siguiente = request.POST.get("next") or request.GET.get("next")
+            if siguiente and url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
+                return redirect(siguiente)
+            return redirect("home")
         else:
-            return redirect(reverse_lazy('login'))
-
+            messages.error(request, "Usuario o contraseña incorrectos.")
+            miForm = AuthenticationForm(request, data=request.POST)
     else:
         miForm = AuthenticationForm()
 
-    return render(request, "appgame/login.html", {"form": miForm})
+    return render(request, "appgame/login.html", {"form": miForm, "next": request.GET.get("next", "")})
 
 def logout_view(request):
     if request.method == 'POST':
@@ -355,7 +366,7 @@ def clear_cart(request):
 
 
 def carrito(request):
-    return render(request, "appgame/carrito.html", {"cart": Cart(request)})
+    return render(request, "appgame/carrito.html", {"resumen": Cart(request).resumen()})
 
 
 #-- Búsqueda global (barra del navbar) --#
@@ -371,3 +382,76 @@ def buscar(request):
         }
     total = sum(len(r) for r in resultados.values())
     return render(request, "appgame/buscar.html", {"q": q, "total": total, **resultados})
+
+
+#-- Checkout / Compras --#
+@login_required
+def checkout(request):
+    cart = Cart(request)
+    resumen = cart.resumen()
+    if not resumen["items"]:
+        messages.warning(request, "Tu carrito está vacío.")
+        return redirect("carrito")
+
+    if request.method == "POST":
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            d = form.cleaned_data
+            with transaction.atomic():
+                pedido = Pedido.objects.create(
+                    user=request.user,
+                    subtotal=resumen["base"], descuento=resumen["ahorro"], total=resumen["total"],
+                    titular=d["titular"], marca_tarjeta=d["marca"],
+                    ultimos4=d["numero_tarjeta"][-4:],              # nunca el número completo
+                    vencimiento=f'{d["mes"]}/{d["anio"]}',           # el CVV no se guarda
+                    pais=d["pais"], ciudad=d["ciudad"], calle=d["calle"], casa_apto=d["casa_apto"],
+                    codigo_postal=d["codigo_postal"], cod_area=d["cod_area"], telefono=d["telefono"],
+                    tipo_documento=d["tipo_documento"], numero_documento=d["numero_documento"],
+                )
+                PedidoItem.objects.bulk_create([
+                    PedidoItem(
+                        pedido=pedido, tipo=i["tipo"], producto_id=i["id"], nombre=i["nombre"],
+                        precio_base=i["precio_base"], descuento=i["descuento"],
+                        precio_final=i["precio"], cantidad=i["cantidad"],
+                    ) for i in resumen["items"]
+                ])
+            cart.clear()
+            messages.success(
+                request,
+                f"Tu compra {pedido.numero} por ${str(pedido.total).replace('.', ',')} fue registrada. Puedes seguirla en Mis compras.",
+                extra_tags="compra",
+            )
+            return redirect("home")
+    else:
+        u = request.user
+        titular = f"{u.first_name} {u.last_name}".strip().upper()
+        form = CheckoutForm(initial={"titular": titular, "marca": "visa"})
+
+    return render(request, "appgame/checkout.html", {"form": form, "resumen": resumen})
+
+
+@login_required
+def historial(request):
+    pedidos = request.user.pedidos.prefetch_related("items")
+    return render(request, "appgame/historial.html", {"pedidos": pedidos})
+
+
+@login_required
+def pedido_detalle(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id, user=request.user)  # solo sus propios pedidos
+    pasos = ["Pagado", "En preparación", "Enviado", "Entregado"]
+    return render(request, "appgame/pedido_detalle.html", {"pedido": pedido, "pasos": pasos})
+
+
+@login_required
+@require_POST
+def pedido_cancelar(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id, user=request.user)
+    if pedido.estado == "pagado":
+        pedido.estado = "cancelado"
+        pedido.save(update_fields=["estado", "actualizado"])
+        messages.info(request, f"El pedido {pedido.numero} fue cancelado.")
+    else:
+        messages.error(request, "Este pedido ya no se puede cancelar.")
+    return redirect("pedido_detalle", pedido_id=pedido.id)
+
